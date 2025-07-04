@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import shap
 import joblib
+import matplotlib.pyplot as plt
 
 # load model and columns
 MODEL_PATH = "src/logistic_model.pkl"
@@ -58,7 +59,10 @@ def main():
         data=shap_values.data[0],
         feature_names=shap_values.feature_names
     )
-    st.pyplot(shap.plots.waterfall(shap_explanation, show=False))
+ 
+    fig = plt.figure(figsize=(10, 6))
+    shap.plots.waterfall(shap_explanation, show=False)
+    st.pyplot(fig)
 
 if __name__ == "__main__":
     main()
