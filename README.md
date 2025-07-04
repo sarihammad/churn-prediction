@@ -2,6 +2,11 @@
 
 An end-to-end machine learning project to predict customer churn in a telecommunications company. This project covers everything from data exploration and cleaning to model building, explainability with SHAP, and a live interactive dashboard using Streamlit.
 
+## Live Demo
+
+Try the interactive churn prediction dashboard live here:
+[Customer Churn Predictor - Streamlit App](https://2n9wy5rztnl2upkvcsnj5k.streamlit.app/)
+
 ## Problem Statement
 
 Customer churn is a critical problem in subscription-based businesses. This project aims to predict which customers are at risk of leaving, so that retention strategies can be applied proactively.
