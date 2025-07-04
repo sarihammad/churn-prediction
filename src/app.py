@@ -6,8 +6,8 @@ import xgboost as xgb
 import joblib
 
 # XGBoost is usually more powerful, but Logistic Regression performed better here. It's also simpler, interpretable, and easier to explain to stakeholders.
-model = joblib.load("logistic_model.pkl")
-columns = joblib.load("model_columns.pkl")
+model = joblib.load("src/logistic_model.pkl")
+columns = joblib.load("src/model_columns.pkl")
 
 explainer = shap.Explainer(model, feature_names=columns)
 
