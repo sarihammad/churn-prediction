@@ -1,25 +1,27 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import shap
-import xgboost as xgb
 import joblib
 
-# XGBoost is usually more powerful, but Logistic Regression performed better here. It's also simpler, interpretable, and easier to explain to stakeholders.
-model = joblib.load("src/logistic_model.pkl")
-columns = joblib.load("src/model_columns.pkl")
+# load model and columns
+MODEL_PATH = "src/logistic_model.pkl"
+COLUMNS_PATH = "src/model_columns.pkl"
+model = joblib.load(MODEL_PATH)
+model_columns = joblib.load(COLUMNS_PATH)
 
-def user_input_features():
-    gender = st.selectbox("Gender", ["Male", "Female"])
-    senior = st.selectbox("Senior Citizen", [0, 1])
-    tenure = st.slider("Tenure (months)", 0, 72, 12)
-    monthly_charges = st.slider("Monthly Charges", 0, 150, 50)
-    total_charges = st.slider("Total Charges", 0, 10000, 500)
-    contract = st.selectbox("Contract", ["Month-to-month", "One year", "Two year"])
-    payment = st.selectbox("Payment Method", ["Electronic check", "Mailed check", 
-                                               "Bank transfer (automatic)", "Credit card (automatic)"])
-    paperless = st.selectbox("Paperless Billing", [0, 1])
-    
+def get_user_input():
+    st.sidebar.header("Customer Information")
+    gender = st.sidebar.selectbox("Gender", ["Male", "Female"])
+    senior = st.sidebar.selectbox("Senior Citizen", [0, 1])
+    tenure = st.sidebar.slider("Tenure (months)", 0, 72, 12)
+    monthly_charges = st.sidebar.slider("Monthly Charges", 0, 150, 50)
+    total_charges = st.sidebar.slider("Total Charges", 0, 10000, 500)
+    contract = st.sidebar.selectbox("Contract", ["Month-to-month", "One year", "Two year"])
+    payment = st.sidebar.selectbox("Payment Method", [
+        "Electronic check", "Mailed check", 
+        "Bank transfer (automatic)", "Credit card (automatic)"
+    ])
+    paperless = st.sidebar.selectbox("Paperless Billing", [0, 1])
     data = {
         'gender': gender,
         'SeniorCitizen': senior,
@@ -30,25 +32,27 @@ def user_input_features():
         'PaymentMethod': payment,
         'PaperlessBilling': paperless
     }
-    return pd.DataFrame(data, index=[0])
+    return pd.DataFrame([data])
 
-input_df = user_input_features()
+def preprocess_input(df, columns):
+    df_encoded = pd.get_dummies(df)
+    df_encoded = df_encoded.reindex(columns=columns, fill_value=0)
+    return df_encoded.astype(float)
 
-df_encoded = pd.get_dummies(input_df)
-df_encoded = df_encoded.reindex(columns=columns, fill_value=0)
+def main():
+    st.title("Customer Churn Predictor")
+    st.markdown("Enter customer information to predict churn risk.")
 
-def predict_proba(X):
-    return model.predict_proba(X)
+    input_df = get_user_input()
+    processed_df = preprocess_input(input_df, model_columns)
 
-explainer = shap.Explainer(predict_proba, df_encoded)
+    churn_prob = model.predict_proba(processed_df)[0][1]
+    st.subheader(f"Predicted Churn Probability: `{churn_prob:.2%}`")
 
-st.title("Customer Churn Predictor")
+    explainer = shap.Explainer(model.predict_proba, processed_df)
+    shap_values = explainer(processed_df)
+    st.subheader("Top Factors Driving This Prediction")
+    st.pyplot(shap.plots.waterfall(shap_values[0], show=False))
 
-st.markdown("Enter customer information to predict churn risk.")
-
-churn_prob = model.predict_proba(df_encoded)[0][1]
-st.subheader(f"Predicted Churn Probability: `{churn_prob:.2%}`")
-
-shap_values = explainer(df_encoded)
-st.subheader("Top Factors Driving This Prediction")
-st.pyplot(shap.plots.waterfall(shap_values[0], show=False))
+if __name__ == "__main__":
+    main()
