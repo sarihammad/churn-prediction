@@ -52,7 +52,7 @@ def main():
     explainer = shap.Explainer(model.predict_proba, processed_df)
     shap_values = explainer(processed_df)
     st.subheader("Top Factors Driving This Prediction")
-    st.pyplot(shap.plots.waterfall(shap_values[0], show=False))
+    st.pyplot(shap.plots.waterfall(shap_values[0, 1], show=False))
 
 if __name__ == "__main__":
     main()
