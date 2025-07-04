@@ -9,12 +9,6 @@ import joblib
 model = joblib.load("src/logistic_model.pkl")
 columns = joblib.load("src/model_columns.pkl")
 
-explainer = shap.Explainer(model, feature_names=columns)
-
-st.title("Customer Churn Predictor")
-
-st.markdown("Enter customer information to predict churn risk.")
-
 def user_input_features():
     gender = st.selectbox("Gender", ["Male", "Female"])
     senior = st.selectbox("Senior Citizen", [0, 1])
@@ -42,6 +36,15 @@ input_df = user_input_features()
 
 df_encoded = pd.get_dummies(input_df)
 df_encoded = df_encoded.reindex(columns=columns, fill_value=0)
+
+def predict_proba(X):
+    return model.predict_proba(X)
+
+explainer = shap.Explainer(predict_proba, df_encoded)
+
+st.title("Customer Churn Predictor")
+
+st.markdown("Enter customer information to predict churn risk.")
 
 churn_prob = model.predict_proba(df_encoded)[0][1]
 st.subheader(f"Predicted Churn Probability: `{churn_prob:.2%}`")
